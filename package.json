@@ -1,24 +1,26 @@
 {
-  "name": "wepy-com-progress-circle",
-  "version": "1.0.3",
-  "description": "wepy的第三方组件：圆形进度条",
-  "main": "progress-circle.wpy",
+  "name": "wepy-com-calendar",
+  "version": "1.0.0",
+  "description": "一个基于wepy的日历组件，内置多套皮肤，可启用打卡功能",
+  "main": "wepy-com-calendar.wpy",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hironi/wepy-com-progress-circle.git"
+    "url": "https://github.com/ronffy/wepy-com-calendar.git"
   },
   "keywords": [
-    "wepy",
+    "wepy-com-calendar",
+    "calendar",
     "wepy-com",
+    "wepy",
     "weapp"
   ],
-  "author": "hironi",
+  "author": "ronffy",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hironi/wepy-com-progress-circle/issues"
+    "url": "https://github.com/ronffy/wepy-com-calendar/issues"
   },
-  "homepage": "https://github.com/hironi/wepy-com-progress-circle#readme"
+  "homepage": "https://github.com/ronffy/wepy-com-calendar#readme"
 }
