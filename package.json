@@ -1,0 +1,24 @@
+{
+  "name": "wepy-com-progress-circle",
+  "version": "1.0.3",
+  "description": "wepy的第三方组件：圆形进度条",
+  "main": "progress-circle.wpy",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hironi/wepy-com-progress-circle.git"
+  },
+  "keywords": [
+    "wepy",
+    "wepy-com",
+    "weapp"
+  ],
+  "author": "hironi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hironi/wepy-com-progress-circle/issues"
+  },
+  "homepage": "https://github.com/hironi/wepy-com-progress-circle#readme"
+}

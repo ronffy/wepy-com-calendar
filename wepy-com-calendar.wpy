@@ -1,0 +1,415 @@
+<script>
+import wepy from 'wepy';
+
+/**
+ * 获取某年某月总天数
+ * @param {string|number} year YYYY
+ * @param {string|number} month MM|M
+ * @return {number}
+ */
+const getMonthDays = (year, month) => {
+  return new Date(year, month, 0).getDate();
+};
+
+// 当前日期面板中包含几天是上个月的; 例如结果是3，则当前日期面板中，有3天是上个月的
+const getPreMonthBlendDays = (year, month) => {
+  return new Date(year, month - 1, 1).getDay();
+};
+
+/**
+ * 给日、月添加前缀0
+ * @param {string|number} d
+ * @return {string}
+ */
+const addDatePrefix = d => {
+  if (typeof d === 'string') {
+    if (d.indexOf('0') === 0) {
+      return d;
+    }
+    if (parseInt(d) < 10) {
+      return `0${d}`;
+    }
+  }
+  if (typeof d === 'number' && d < 10) {
+    return `0${d}`;
+  }
+  return `${d}`;
+};
+/**
+ * 日、月去掉前缀0
+ * @param {string|number} d
+ * @return {number}
+ */
+const rmDatePrefix = d => {
+  if (typeof d === 'string') {
+    if (d.indexOf('0') === 0) {
+      return parseInt(d);
+    } else {
+      return d - 0;
+    }
+  }
+  return d;
+};
+
+/**
+ * 获取完整的年月日 YYYY-MM-DD
+ * @param {string} year YYYY
+ * @param {string|number} month MM|M
+ * @param {string|number} day DD|D
+ * @return {string} YYYY-MM-DD
+ */
+const getFullDate = (year, month, day) => {
+  month = addDatePrefix(month);
+  day = addDatePrefix(day);
+  return `${year}-${month}-${day}`;
+};
+
+const formatDate = d => {
+  let date = new Date(d);
+  let year = date.getFullYear();
+  let month = addDatePrefix(date.getMonth() + 1);
+  let day = addDatePrefix(date.getDate());
+  return `${year}-${month}-${day}`;
+};
+
+const diffWeeks = [
+  {
+    type: 'zh_CN',
+    weeks: ['日', '一', '二', '三', '四', '五', '六']
+  },
+  {
+    type: 'en_GB',
+    weeks: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sta']
+  },
+];
+
+export default class WepyCalendar extends wepy.component {
+  props = {
+    activeDate: {
+      type: String,
+      default: formatDate(new Date()),
+      twoWay: true
+    },
+    selectedDates: {
+      type: Array,
+      default: [],
+      twoWay: true
+    },
+    language: {
+      type: String,
+      default: 'zh_CN', // 可选zh_CN, en_GB
+      twoWay: true
+    }
+  };
+  data = {
+    weeks: diffWeeks[0].weeks,
+    currYear: '',
+    currMonth: '',
+    preMonthBlendDays: 0, // 上个月在日期面板中占几天
+    currMonthFullDays: 0, // 本月总天数
+    // 此数组长度为35或42
+    panelDaysList: []
+  };
+
+  onLoad() {
+    const [year, month] = this.activeDate.split('-');
+    this.resetPanelDays(year, month);
+    if (this.language !== 'zh_CN') {
+      for (const { type, weeks } of diffWeeks) {
+        if (type === this.language) {
+          this.weeks = weeks;
+        }
+      }
+    }
+    this.$apply();
+    console.log(this);
+    
+  }
+
+  methods = {
+    tapDayItem(e) {
+
+      const { index, info } = e.currentTarget.dataset;
+
+      this.setDay(info.day);
+      
+    },
+    /**
+     * 修改日历月份
+     * @param {number} modify 用于对month进行微调
+     */
+    changeCurrMonth(month, modify = 0) {
+      let monthNum = rmDatePrefix(month);
+      let resaultMonth = monthNum;
+      if (modify !== 0) {
+        resaultMonth = monthNum + parseInt(modify);
+      }
+      let resaultYear = this.currYear;
+
+      // 处理月份超过12或小于1时的情况
+      if (resaultMonth < 1) {
+        resaultYear = `${parseInt(resaultYear) - 1}`;
+        resaultMonth = 12;
+      } else if (resaultMonth > 12) {
+        resaultYear = `${parseInt(resaultYear) + 1}`;
+        resaultMonth = 1;
+      }
+      this.resetPanelDays(resaultYear, `${addDatePrefix(resaultMonth)}`);
+    },
+    /**
+     * 改变日期选择器value后的回调，event.detail = {value: value}
+     * @param {number} modify 用于对month进行微调
+     */
+    changePicker(e) {
+      const value = e.detail.value;
+      if (!value) {
+        return;
+      }
+      const [year, month] = value.split('-');
+      this.resetPanelDays(year, month);
+    }
+  };
+
+  // 根据索引值，设置当前日期面板的active项
+  setCurrPanelActiveDayWithIndex(index) {
+    month = month || this.currMonth;
+    year = year || this.currYear;
+    const fullDate = getFullDate(year, month, day);
+      if (this.activeDate === fullDate) {
+        return;
+      }
+
+      let newpanelDaysList = [...this.panelDaysList];
+      for (const [i, dayItem] of this.panelDaysList.entries()) {
+        // 将非当前选中的其他active项的active置为false
+        const [activeYear, activeMonth, activeDay] = this.activeDate.split('-');
+        let thisItemFullDay = '';
+        if (i <= preMonthBlendDays) {
+          if (parseInt(this.currMonth) === 1) {
+            this.currYear = `${this.currYear - 1}`;
+            this.currMonth = '12'
+          }
+          thisItemFullDay = getFullDate(year, month, day);
+        }
+
+        if (i > preMonthBlendDays + currMonthFullDays) {
+          
+        }
+        // 计算该item的fullDate
+
+        
+
+        if (dayItem.active && fullDate !== this.activeDate) {
+          newpanelDaysList[i] = {
+            ...newpanelDaysList[i],
+            active: false
+          };
+        } else if (condition) {
+          
+        }
+      }
+
+      // 将非当前选中项的active置为true
+      newpanelDaysList[index] = {
+        ...newpanelDaysList[index],
+        active: true
+      };
+
+      this.activeDate = fullDate;
+      this.panelDaysList = newpanelDaysList;
+  }
+
+  /**
+   * 根据传进来的activeDate，计算年、月、当前月面板内的所有日（包含上月和下月的连接日）
+   * @param {string} year YYYY
+   * @param {string} month MM
+   */
+  resetPanelDays(year, month, day) {
+    if (this.currYear === year && this.currMonth === month) {
+      return;
+    }
+    const monthNum = rmDatePrefix(month);
+    let panelDaysList = [];
+    // 将上个月需要展示的数据添加进panelDaysList数组
+    const preMonthBlendDays = getPreMonthBlendDays(year, monthNum);
+    let preMonthFullDays = getMonthDays(year, monthNum - 1);
+    for (let i = 0; i < preMonthBlendDays; i++) {
+      const dayItem = this.getDayItem(
+        year,
+        monthNum - 1,
+        preMonthFullDays--,
+        'pre'
+      );
+      panelDaysList.unshift(dayItem);
+    }
+
+    // 将本月月需要展示的数据添加进panelDaysList数组
+    const thisMonthFullDays = getMonthDays(year, monthNum);
+    for (let i = 1; i <= thisMonthFullDays; i++) {
+      const dayItem = this.getDayItem(year, month, i, 'curr');
+      panelDaysList.push(dayItem);
+    }
+
+    // 将下个月需要展示的数据添加进panelDaysList数组
+    // 如果当前月和上个月需展示天数超过35，则一共需要展示42天；
+    // 未超过35天时，则一共展示35天
+    const existDays = preMonthBlendDays + thisMonthFullDays;
+    const nextMonthBlendDays = (existDays > 35 ? 42 : 35) - existDays;
+    for (let i = 1; i <= nextMonthBlendDays; i++) {
+      const dayItem = this.getDayItem(year, monthNum + 1, i, 'next');
+      panelDaysList.push(dayItem);
+    }
+
+    this.preMonthBlendDays = preMonthBlendDays;
+    this.currMonthFullDays = thisMonthFullDays;
+    this.currYear = year;
+    this.currMonth = month;
+    this.panelDaysList = panelDaysList;
+  }
+
+  getDayItem(year, month, day, type = 'curr') {
+    day = addDatePrefix(day);
+    const fullDate = getFullDate(year, month, day);
+    let dayItem = {
+      type,
+      day,
+      fullDate,
+    };
+    this.setActiveItemProp(dayItem, fullDate);
+    this.setSelectedItemProp(dayItem, fullDate);
+    return dayItem;
+  }
+  setActiveItemProp(dayItem, fullDate) {
+    if (fullDate === this.activeDate) {
+      dayItem.active = true;
+    }
+  }
+  setSelectedItemProp(dayItem, fullDate) {
+    if (this.selectedDates.indexOf(fullDate) > -1) {
+      dayItem.selected = true;
+    }
+  }
+}
+</script>
+<template>
+  <view class="wepy-com-calendar">
+    <view class="calendar">
+      <view class="header">
+        <view class="pre" @tap="changeCurrMonth({{currMonth}}, {{-1}})">《</view>
+        <picker class="picker" mode="date" fields="month" value="{{currYear}}-{{currMonth}}" @change="changePicker">
+          {{currYear}}-{{currMonth}}
+        </picker>
+        <view class="next" @tap="changeCurrMonth({{currMonth}}, {{1}})">》</view>
+      </view>
+      <view class="fullcalendar">
+        <view class="weeks">
+          <repeat for="{{weeks}}" key="index" index="index" item="item">
+            <text>{{item}}</text>
+          </repeat>
+        </view>
+        <view class="body">
+          <repeat for="{{panelDaysList}}" key="index" index="index" item="item">
+            <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.selected ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
+              <view class="info">
+                <text>{{item.day}}</text>
+                <image wx:if="{{item.selected}}" class="icon-selected" mode="widthFix" src="https://weexam.sunlands.wang/img/pink-ok.png" />
+              </view>
+            </view>
+          </repeat>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<style lang="less" >
+@color-pink: #f759ab;
+@color-green: #42b983;
+@color-gray: rgba(0, 0, 0, 0.25);
+.wepy-com-calendar {
+  .calendar {
+    font-size: 30rpx;
+    .header {
+      display: flex;
+      color: @color-pink;
+      text-align: center;
+      .pre,
+      .next,
+      .picker {
+        width: 33%;
+      }
+    }
+    .fullcalendar {
+      margin-top: 25rpx;
+      .weeks,
+      .body {
+        width: 750rpx;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      .weeks text,
+      .body .pre,
+      .body .next,
+      .body .curr {
+        width: 14.2%;
+        text-align: center;
+      }
+      .weeks text {
+        color: @color-pink;
+      }
+      .body {
+        height: 400rpx;
+        margin-top: 35rpx;
+        .pre,
+        .next {
+          color: @color-gray;
+        }
+        .curr {
+          color: @color-green;
+        }
+        .curr,
+        .pre,
+        .next {
+          .info {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text {
+              width: 30px;
+              height: 30px;
+              line-height: 30px;
+            }
+          }
+          &.active {
+            .info {
+              text {
+                border-radius: 50%;
+                background: @color-pink;
+                color: #fff;
+              }
+            }
+          }
+          &.select {
+            .icon-selected {
+              position: absolute;
+              right: 8rpx;
+              bottom: 0rpx;
+              width: 56rpx;
+            }
+          }
+          &.select.active {
+            .info {
+              text {
+                background: @color-green;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+</style>
