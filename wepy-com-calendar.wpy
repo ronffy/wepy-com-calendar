@@ -1,5 +1,11 @@
 <script>
-import wepy from 'wepy';
+/**
+ * Copyright (c) 2015-present, ronffy, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+import wepy from "wepy";
 
 /**
  * 获取某年某月总天数
@@ -22,27 +28,23 @@ const getPreMonthBlendDays = (year, month) => {
  * @return {string}
  */
 const addDatePrefix = d => {
-  if (typeof d === 'string') {
-    if (d.indexOf('0') === 0) {
-      return d;
-    }
-    if (parseInt(d) < 10) {
-      return `0${d}`;
-    }
-  }
-  if (typeof d === 'number' && d < 10) {
+  if (
+    (typeof d === "number" && d < 10) ||
+    (typeof d === "string" && d.indexOf("0") === -1 && parseInt(d) < 10)
+  ) {
     return `0${d}`;
   }
   return `${d}`;
 };
+
 /**
  * 日、月去掉前缀0
  * @param {string|number} d
  * @return {number}
  */
 const rmDatePrefix = d => {
-  if (typeof d === 'string') {
-    if (d.indexOf('0') === 0) {
+  if (typeof d === "string") {
+    if (d.indexOf("0") === 0) {
       return parseInt(d);
     } else {
       return d - 0;
@@ -72,39 +74,54 @@ const formatDate = d => {
   return `${year}-${month}-${day}`;
 };
 
-const diffWeeks = [
+const multiWeeks = [
   {
-    type: 'zh_CN',
-    weeks: ['日', '一', '二', '三', '四', '五', '六']
+    type: "zh_CN",
+    weeks: ["日", "一", "二", "三", "四", "五", "六"]
   },
   {
-    type: 'en_GB',
-    weeks: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sta']
-  },
+    type: "en_GB",
+    weeks: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sta"]
+  }
 ];
 
 export default class WepyCalendar extends wepy.component {
   props = {
     activeDate: {
       type: String,
-      default: formatDate(new Date()),
-      twoWay: true
+      default: formatDate(new Date())
     },
     selectedDates: {
       type: Array,
-      default: [],
+      default: []
+    },
+    theme: {
+      type: String,
+      default: "default" // 目前支持的主题有 default, young, fresh, black，如需自定义，请通过themeStyle属性控制
+    },
+    // 比theme优先级高
+    themeStyle: {
+      type: Object,
+      default: {},
       twoWay: true
     },
     language: {
       type: String,
-      default: 'zh_CN', // 可选zh_CN, en_GB
-      twoWay: true
+      default: "zh_CN" // 可选zh_CN, en_GB
+    },
+    icon: {
+      type: String,
+      default: "https://weexam.sunlands.wang/img/green-ok.png"
+    },
+    activeStyle: {
+      type: String,
+      default: '',
     }
   };
   data = {
-    weeks: diffWeeks[0].weeks,
-    currYear: '',
-    currMonth: '',
+    weeks: multiWeeks[0].weeks,
+    currYear: "",
+    currMonth: "",
     preMonthBlendDays: 0, // 上个月在日期面板中占几天
     currMonthFullDays: 0, // 本月总天数
     // 此数组长度为35或42
@@ -112,27 +129,37 @@ export default class WepyCalendar extends wepy.component {
   };
 
   onLoad() {
-    const [year, month] = this.activeDate.split('-');
+    this.setLanguage();
+    const [year, month] = this.activeDate.split("-");
     this.resetPanelDays(year, month);
-    if (this.language !== 'zh_CN') {
-      for (const { type, weeks } of diffWeeks) {
+    this.$apply();
+    console.log(this);
+  }
+
+  setTheme(style) {
+    if (!style) {
+      return;
+    }
+    this.themeStyle = {
+      ...this.themeStyle,
+      ...style
+    };
+  }
+
+  setLanguage() {
+    if (this.language !== "zh_CN") {
+      for (const { type, weeks } of multiWeeks) {
         if (type === this.language) {
           this.weeks = weeks;
         }
       }
     }
-    this.$apply();
-    console.log(this);
-    
   }
 
   methods = {
     tapDayItem(e) {
-
       const { index, info } = e.currentTarget.dataset;
-
-      this.setDay(info.day);
-      
+      this.setCurrPanelActiveDay(info.fullDate);
     },
     /**
      * 修改日历月份
@@ -165,58 +192,41 @@ export default class WepyCalendar extends wepy.component {
       if (!value) {
         return;
       }
-      const [year, month] = value.split('-');
+      const [year, month] = value.split("-");
       this.resetPanelDays(year, month);
     }
   };
 
   // 根据索引值，设置当前日期面板的active项
-  setCurrPanelActiveDayWithIndex(index) {
-    month = month || this.currMonth;
-    year = year || this.currYear;
-    const fullDate = getFullDate(year, month, day);
-      if (this.activeDate === fullDate) {
-        return;
+  setCurrPanelActiveDay(fullDate) {
+    if (this.activeDate === fullDate) {
+      return;
+    }
+    let doed = 0; // 性能优化处理
+    let newpanelDaysList = [...this.panelDaysList];
+    for (const [i, dayItem] of this.panelDaysList.entries()) {
+      if (doed === 2) {
+        break;
       }
-
-      let newpanelDaysList = [...this.panelDaysList];
-      for (const [i, dayItem] of this.panelDaysList.entries()) {
+      if (dayItem.active && dayItem.fullDate !== fullDate) {
         // 将非当前选中的其他active项的active置为false
-        const [activeYear, activeMonth, activeDay] = this.activeDate.split('-');
-        let thisItemFullDay = '';
-        if (i <= preMonthBlendDays) {
-          if (parseInt(this.currMonth) === 1) {
-            this.currYear = `${this.currYear - 1}`;
-            this.currMonth = '12'
-          }
-          thisItemFullDay = getFullDate(year, month, day);
-        }
-
-        if (i > preMonthBlendDays + currMonthFullDays) {
-          
-        }
-        // 计算该item的fullDate
-
-        
-
-        if (dayItem.active && fullDate !== this.activeDate) {
-          newpanelDaysList[i] = {
-            ...newpanelDaysList[i],
-            active: false
-          };
-        } else if (condition) {
-          
-        }
+        newpanelDaysList[i] = {
+          ...newpanelDaysList[i],
+          active: false
+        };
+        ++doed;
+      } else if (dayItem.fullDate === fullDate) {
+        // 将非当前选中项的active置为true
+        newpanelDaysList[i] = {
+          ...newpanelDaysList[i],
+          active: true
+        };
+        ++doed;
       }
+    }
 
-      // 将非当前选中项的active置为true
-      newpanelDaysList[index] = {
-        ...newpanelDaysList[index],
-        active: true
-      };
-
-      this.activeDate = fullDate;
-      this.panelDaysList = newpanelDaysList;
+    this.activeDate = fullDate;
+    this.panelDaysList = newpanelDaysList;
   }
 
   /**
@@ -234,11 +244,11 @@ export default class WepyCalendar extends wepy.component {
     const preMonthBlendDays = getPreMonthBlendDays(year, monthNum);
     let preMonthFullDays = getMonthDays(year, monthNum - 1);
     for (let i = 0; i < preMonthBlendDays; i++) {
-      const dayItem = this.getDayItem(
+      const dayItem = this.setDayItem(
         year,
         monthNum - 1,
         preMonthFullDays--,
-        'pre'
+        "pre"
       );
       panelDaysList.unshift(dayItem);
     }
@@ -246,7 +256,7 @@ export default class WepyCalendar extends wepy.component {
     // 将本月月需要展示的数据添加进panelDaysList数组
     const thisMonthFullDays = getMonthDays(year, monthNum);
     for (let i = 1; i <= thisMonthFullDays; i++) {
-      const dayItem = this.getDayItem(year, month, i, 'curr');
+      const dayItem = this.setDayItem(year, month, i, "curr");
       panelDaysList.push(dayItem);
     }
 
@@ -256,7 +266,7 @@ export default class WepyCalendar extends wepy.component {
     const existDays = preMonthBlendDays + thisMonthFullDays;
     const nextMonthBlendDays = (existDays > 35 ? 42 : 35) - existDays;
     for (let i = 1; i <= nextMonthBlendDays; i++) {
-      const dayItem = this.getDayItem(year, monthNum + 1, i, 'next');
+      const dayItem = this.setDayItem(year, monthNum + 1, i, "next");
       panelDaysList.push(dayItem);
     }
 
@@ -267,25 +277,25 @@ export default class WepyCalendar extends wepy.component {
     this.panelDaysList = panelDaysList;
   }
 
-  getDayItem(year, month, day, type = 'curr') {
+  setDayItem(year, month, day, type = "curr") {
     day = addDatePrefix(day);
     const fullDate = getFullDate(year, month, day);
     let dayItem = {
       type,
       day,
-      fullDate,
+      fullDate
     };
-    this.setActiveItemProp(dayItem, fullDate);
-    this.setSelectedItemProp(dayItem, fullDate);
+    this.setActiveItemProp(dayItem);
+    this.setSelectedItemProp(dayItem);
     return dayItem;
   }
-  setActiveItemProp(dayItem, fullDate) {
-    if (fullDate === this.activeDate) {
+  setActiveItemProp(dayItem) {
+    if (dayItem.fullDate === this.activeDate) {
       dayItem.active = true;
     }
   }
-  setSelectedItemProp(dayItem, fullDate) {
-    if (this.selectedDates.indexOf(fullDate) > -1) {
+  setSelectedItemProp(dayItem) {
+    if (this.selectedDates.indexOf(dayItem.fullDate) > -1) {
       dayItem.selected = true;
     }
   }
@@ -293,7 +303,7 @@ export default class WepyCalendar extends wepy.component {
 </script>
 <template>
   <view class="wepy-com-calendar">
-    <view class="calendar">
+    <view class="calendar theme-{{theme}}" @style="themeStyle">
       <view class="header">
         <view class="pre" @tap="changeCurrMonth({{currMonth}}, {{-1}})">《</view>
         <picker class="picker" mode="date" fields="month" value="{{currYear}}-{{currMonth}}" @change="changePicker">
@@ -311,8 +321,8 @@ export default class WepyCalendar extends wepy.component {
           <repeat for="{{panelDaysList}}" key="index" index="index" item="item">
             <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.selected ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
-                <text>{{item.day}}</text>
-                <image wx:if="{{item.selected}}" class="icon-selected" mode="widthFix" src="https://weexam.sunlands.wang/img/pink-ok.png" />
+                <text class="active-icon" @style="activeStyle">{{item.day}}</text>
+                <image wx:if="{{item.selected}}" class="icon-selected" mode="widthFix" src="{{icon}}" />
               </view>
             </view>
           </repeat>
@@ -322,15 +332,12 @@ export default class WepyCalendar extends wepy.component {
   </view>
 </template>
 <style lang="less" >
-@color-pink: #f759ab;
-@color-green: #42b983;
 @color-gray: rgba(0, 0, 0, 0.25);
 .wepy-com-calendar {
   .calendar {
     font-size: 30rpx;
     .header {
       display: flex;
-      color: @color-pink;
       text-align: center;
       .pre,
       .next,
@@ -354,18 +361,12 @@ export default class WepyCalendar extends wepy.component {
         width: 14.2%;
         text-align: center;
       }
-      .weeks text {
-        color: @color-pink;
-      }
       .body {
         height: 400rpx;
         margin-top: 35rpx;
         .pre,
         .next {
           color: @color-gray;
-        }
-        .curr {
-          color: @color-green;
         }
         .curr,
         .pre,
@@ -387,7 +388,6 @@ export default class WepyCalendar extends wepy.component {
             .info {
               text {
                 border-radius: 50%;
-                background: @color-pink;
                 color: #fff;
               }
             }
@@ -400,10 +400,111 @@ export default class WepyCalendar extends wepy.component {
               width: 56rpx;
             }
           }
-          &.select.active {
-            .info {
-              text {
-                background: @color-green;
+        }
+      }
+    }
+    &.theme-default {
+      @color-sub: #000;
+      @color-base: #666;
+      @color-iconText: #69c0ff;
+      .header {
+        color: @color-sub;
+      }
+      .fullcalendar {
+        .weeks text {
+          color: @color-sub;
+        }
+        .body {
+          .curr {
+            color: @color-base;
+          }
+          .curr,
+          .pre,
+          .next {
+            &.active {
+              .active-icon {
+                background: @color-iconText;
+              }
+            }
+          }
+        }
+      }
+    }
+    &.theme-black {
+      @color-sub: #000;
+      @color-base: #333;
+      @color-iconText: #666;
+      .header {
+        color: @color-sub;
+      }
+      .fullcalendar {
+        .weeks text {
+          color: @color-sub;
+        }
+        .body {
+          .curr {
+            color: @color-base;
+          }
+          .curr,
+          .pre,
+          .next {
+            &.active {
+              .active-icon {
+                background: @color-iconText;
+              }
+            }
+          }
+        }
+      }
+    }
+    &.theme-young {
+      @color-sub: #f759ab;
+      @color-base: #42b983;
+      @color-iconText: #f759ab;
+      .header {
+        color: @color-sub;
+      }
+      .fullcalendar {
+        .weeks text {
+          color: @color-sub;
+        }
+        .body {
+          .curr {
+            color: @color-base;
+          }
+          .curr,
+          .pre,
+          .next {
+            &.active {
+              .active-icon {
+                background: @color-iconText;
+              }
+            }
+          }
+        }
+      }
+    }
+    &.theme-fresh {
+      @color-sub: #ff9c6e;
+      @color-base: #36cfc9;
+      @color-iconText: #ffbb96;
+      .header {
+        color: @color-sub;
+      }
+      .fullcalendar {
+        .weeks text {
+          color: @color-sub;
+        }
+        .body {
+          .curr {
+            color: @color-base;
+          }
+          .curr,
+          .pre,
+          .next {
+            &.active {
+              .active-icon {
+                background: @color-iconText;
               }
             }
           }
