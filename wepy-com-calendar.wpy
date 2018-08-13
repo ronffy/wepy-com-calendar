@@ -18,7 +18,7 @@ const getMonthDays = (year, month) => {
 };
 
 // 当前日期面板中包含几天是上个月的; 例如结果是3，则当前日期面板中，有3天是上个月的
-const getPreMonthBlendDays = (year, month) => {
+const getPreMonthBlendDay = (year, month) => {
   return new Date(year, month - 1, 1).getDay();
 };
 
@@ -97,7 +97,7 @@ export default class WepyCalendar extends wepy.component {
     },
     theme: {
       type: String,
-      default: "default" // 目前支持的主题有 default, green, pink, orange, black, blue，如需自定义，请通过themeStyle属性控制
+      default: "orange" // 目前支持的主题有 default, green, pink, orange, black, blue，如需自定义，请通过themeStyle属性控制
     },
     // 比theme优先级高
     themeStyle: {
@@ -120,10 +120,9 @@ export default class WepyCalendar extends wepy.component {
   };
   data = {
     weeks: multiWeeks[0].weeks,
+    width: 375,
     currYear: "",
     currMonth: "",
-    preMonthBlendDays: 0, // 上个月在日期面板中占几天
-    currMonthFullDays: 0, // 本月总天数
     // 此数组长度为35或42
     panelDaysList: []
   };
@@ -133,7 +132,6 @@ export default class WepyCalendar extends wepy.component {
     const [year, month] = this.activeDate.split("-");
     this.resetPanelDays(year, month);
     this.$apply();
-    console.log(this);
   }
 
   setTheme(style) {
@@ -160,6 +158,7 @@ export default class WepyCalendar extends wepy.component {
     tapDayItem(e) {
       const { index, info } = e.currentTarget.dataset;
       this.setCurrPanelActiveDay(info.fullDate);
+      this.$emit('calendarAfterTapDay', this.panelDaysList, this);
     },
     /**
      * 修改日历月份
@@ -229,6 +228,50 @@ export default class WepyCalendar extends wepy.component {
     this.panelDaysList = newpanelDaysList;
   }
 
+  getPreMonthBlendDays(year, monthNum) {
+    // 上个月需要展示的数据
+    const resaultList = [];
+    const preMonthBlendDay = getPreMonthBlendDay(year, monthNum);
+    let thisMonthNum = monthNum - 1;
+    let thisYear = year;
+    if (monthNum === 1) {
+      thisYear = year - 1;
+      thisMonthNum = 12;
+    }
+    let preMonthFullDays = getMonthDays(thisYear, thisMonthNum);
+    for (let i = 0; i < preMonthBlendDay; i++) {
+      const dayItem = this.setDayItem(
+        thisYear,
+        thisMonthNum,
+        preMonthFullDays--,
+        "pre"
+      );
+      resaultList.unshift(dayItem);
+    }
+    return resaultList;
+  }
+
+  getThisMonthBlendDays(year, monthNum) {
+    // 本月需要展示的数据
+    const resaultList = [];
+    const thisMonthFullDays = getMonthDays(year, monthNum);
+    for (let i = 1; i <= thisMonthFullDays; i++) {
+      const dayItem = this.setDayItem(year, monthNum, i, "curr");
+      resaultList.push(dayItem);
+    }
+    return resaultList;
+  }
+
+  getNextMonthBlendDays(year, monthNum, monthBlendDays) {
+    // 下个月需要展示的数据
+    const resaultList = [];
+    for (let i = 1; i <= monthBlendDays; i++) {
+      const dayItem = this.setDayItem(year, monthNum + 1, i, "next");
+      resaultList.push(dayItem);
+    }
+    return resaultList;
+  }
+
   /**
    * 根据传进来的activeDate，计算年、月、当前月面板内的所有日（包含上月和下月的连接日）
    * @param {string} year YYYY
@@ -240,41 +283,27 @@ export default class WepyCalendar extends wepy.component {
     }
     const monthNum = rmDatePrefix(month);
     let panelDaysList = [];
+
     // 将上个月需要展示的数据添加进panelDaysList数组
-    const preMonthBlendDays = getPreMonthBlendDays(year, monthNum);
-    let preMonthFullDays = getMonthDays(year, monthNum - 1);
-    for (let i = 0; i < preMonthBlendDays; i++) {
-      const dayItem = this.setDayItem(
-        year,
-        monthNum - 1,
-        preMonthFullDays--,
-        "pre"
-      );
-      panelDaysList.unshift(dayItem);
-    }
+    const preMonthBlendDays = this.getPreMonthBlendDays(year, monthNum);
+    panelDaysList.push(...preMonthBlendDays);
 
     // 将本月月需要展示的数据添加进panelDaysList数组
-    const thisMonthFullDays = getMonthDays(year, monthNum);
-    for (let i = 1; i <= thisMonthFullDays; i++) {
-      const dayItem = this.setDayItem(year, month, i, "curr");
-      panelDaysList.push(dayItem);
-    }
+    const thisMonthDays = this.getThisMonthBlendDays(year, monthNum);
+    panelDaysList.push(...thisMonthDays);
 
     // 将下个月需要展示的数据添加进panelDaysList数组
     // 如果当前月和上个月需展示天数超过35，则一共需要展示42天；
     // 未超过35天时，则一共展示35天
-    const existDays = preMonthBlendDays + thisMonthFullDays;
-    const nextMonthBlendDays = (existDays > 35 ? 42 : 35) - existDays;
-    for (let i = 1; i <= nextMonthBlendDays; i++) {
-      const dayItem = this.setDayItem(year, monthNum + 1, i, "next");
-      panelDaysList.push(dayItem);
-    }
+    const existDays = preMonthBlendDays.length + thisMonthDays.length;
+    const nextMonthBlendDay = (existDays > 35 ? 42 : 35) - existDays;
+    const nextMonthBlendDays = this.getNextMonthBlendDays(year, monthNum, nextMonthBlendDay);
+    panelDaysList.push(...nextMonthBlendDays);
 
-    this.preMonthBlendDays = preMonthBlendDays;
-    this.currMonthFullDays = thisMonthFullDays;
     this.currYear = year;
     this.currMonth = month;
     this.panelDaysList = panelDaysList;
+    this.$emit('calendarAfterRender', panelDaysList, this);
   }
 
   setDayItem(year, month, day, type = "curr") {
@@ -302,7 +331,7 @@ export default class WepyCalendar extends wepy.component {
 }
 </script>
 <template>
-  <view class="wepy-com-calendar">
+  <view class="wepy-com-calendar" style="width: {{width}}px;">
     <view class="calendar theme-{{theme}}" @style="themeStyle">
       <view class="header">
         <view class="pre" @tap="changeCurrMonth({{currMonth}}, {{-1}})">《</view>
@@ -317,7 +346,7 @@ export default class WepyCalendar extends wepy.component {
             <text>{{item}}</text>
           </repeat>
         </view>
-        <view class="body">
+        <view class="body" style="height: {{width / 2}}px;">
           <repeat for="{{panelDaysList}}" key="index" index="index" item="item">
             <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.checked ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
@@ -349,7 +378,6 @@ export default class WepyCalendar extends wepy.component {
       margin-top: 25rpx;
       .weeks,
       .body {
-        width: 750rpx;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
@@ -362,7 +390,6 @@ export default class WepyCalendar extends wepy.component {
         text-align: center;
       }
       .body {
-        height: 400rpx;
         margin-top: 35rpx;
         .pre,
         .next {
@@ -395,15 +422,15 @@ export default class WepyCalendar extends wepy.component {
           &.select {
             .icon-checked {
               position: absolute;
-              right: 8rpx;
-              bottom: 0rpx;
-              width: 56rpx;
+              right: 14rpx;
+              bottom: -2rpx;
+              width: 50%;
             }
           }
         }
       }
     }
-    &.theme-default {
+    &.theme-blue {
       @color-sub: #000;
       @color-base: #666;
       @color-iconText: #69c0ff;
@@ -430,6 +457,7 @@ export default class WepyCalendar extends wepy.component {
         }
       }
     }
+    &.theme-default,
     &.theme-black {
       @color-sub: #000;
       @color-base: #333;
