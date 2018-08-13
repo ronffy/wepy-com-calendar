@@ -91,13 +91,13 @@ export default class WepyCalendar extends wepy.component {
       type: String,
       default: formatDate(new Date())
     },
-    selectedDates: {
+    checks: {
       type: Array,
       default: []
     },
     theme: {
       type: String,
-      default: "default" // 目前支持的主题有 default, young, fresh, black，如需自定义，请通过themeStyle属性控制
+      default: "orange" // 目前支持的主题有 default, green, pink, orange, black，如需自定义，请通过themeStyle属性控制
     },
     // 比theme优先级高
     themeStyle: {
@@ -111,7 +111,7 @@ export default class WepyCalendar extends wepy.component {
     },
     icon: {
       type: String,
-      default: "https://weexam.sunlands.wang/img/green-ok.png"
+      default: ""
     },
     activeStyle: {
       type: String,
@@ -286,7 +286,7 @@ export default class WepyCalendar extends wepy.component {
       fullDate
     };
     this.setActiveItemProp(dayItem);
-    this.setSelectedItemProp(dayItem);
+    this.setCheckedItemProp(dayItem);
     return dayItem;
   }
   setActiveItemProp(dayItem) {
@@ -294,9 +294,9 @@ export default class WepyCalendar extends wepy.component {
       dayItem.active = true;
     }
   }
-  setSelectedItemProp(dayItem) {
-    if (this.selectedDates.indexOf(dayItem.fullDate) > -1) {
-      dayItem.selected = true;
+  setCheckedItemProp(dayItem) {
+    if (this.checks.indexOf(dayItem.fullDate) > -1) {
+      dayItem.checked = true;
     }
   }
 }
@@ -319,10 +319,10 @@ export default class WepyCalendar extends wepy.component {
         </view>
         <view class="body">
           <repeat for="{{panelDaysList}}" key="index" index="index" item="item">
-            <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.selected ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
+            <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.checked ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
                 <text class="active-icon" @style="activeStyle">{{item.day}}</text>
-                <image wx:if="{{item.selected}}" class="icon-selected" mode="widthFix" src="{{icon}}" />
+                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || 'http://oxk008h6r.bkt.clouddn.com/check-' + (theme === 'default' ? 'blue' : theme) + '.png'}}" />
               </view>
             </view>
           </repeat>
@@ -393,7 +393,7 @@ export default class WepyCalendar extends wepy.component {
             }
           }
           &.select {
-            .icon-selected {
+            .icon-checked {
               position: absolute;
               right: 8rpx;
               bottom: 0rpx;
@@ -457,7 +457,7 @@ export default class WepyCalendar extends wepy.component {
         }
       }
     }
-    &.theme-young {
+    &.theme-green {
       @color-sub: #f759ab;
       @color-base: #42b983;
       @color-iconText: #f759ab;
@@ -484,7 +484,34 @@ export default class WepyCalendar extends wepy.component {
         }
       }
     }
-    &.theme-fresh {
+    &.theme-pink {
+      @color-sub: #42b983;
+      @color-base: #f759ab;
+      @color-iconText: #42b983;
+      .header {
+        color: @color-sub;
+      }
+      .fullcalendar {
+        .weeks text {
+          color: @color-sub;
+        }
+        .body {
+          .curr {
+            color: @color-base;
+          }
+          .curr,
+          .pre,
+          .next {
+            &.active {
+              .active-icon {
+                background: @color-iconText;
+              }
+            }
+          }
+        }
+      }
+    }
+    &.theme-orange {
       @color-sub: #ff9c6e;
       @color-base: #36cfc9;
       @color-iconText: #ffbb96;
