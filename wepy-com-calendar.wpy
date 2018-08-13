@@ -97,7 +97,7 @@ export default class WepyCalendar extends wepy.component {
     },
     theme: {
       type: String,
-      default: "orange" // 目前支持的主题有 default, green, pink, orange, black，如需自定义，请通过themeStyle属性控制
+      default: "default" // 目前支持的主题有 default, green, pink, orange, black, blue，如需自定义，请通过themeStyle属性控制
     },
     // 比theme优先级高
     themeStyle: {
@@ -322,7 +322,7 @@ export default class WepyCalendar extends wepy.component {
             <view class="{{item.type}} {{item.active ? 'active' : ''}} {{item.checked ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
                 <text class="active-icon" @style="activeStyle">{{item.day}}</text>
-                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || 'http://oxk008h6r.bkt.clouddn.com/check-' + (theme === 'default' ? 'blue' : theme) + '.png'}}" />
+                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || 'http://oxk008h6r.bkt.clouddn.com/check-' + (theme === 'default' ? 'black' : theme) + '.png'}}" />
               </view>
             </view>
           </repeat>
