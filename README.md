@@ -1,8 +1,7 @@
 # wepy-com-calendar
 [![npm](https://img.shields.io/npm/v/wepy-com-calendar.svg)](https://www.npmjs.com/package/wepy-com-calendar)
 
->
->> 功能齐全的wepy日历组件，欢迎fork
+> 功能齐全的wepy日历组件，欢迎fork
 
 ## 介绍
 
