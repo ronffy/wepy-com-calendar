@@ -379,136 +379,196 @@ export default class WepyCalendar extends wepy.component {
     </view>
   </view>
 </template>
-<style>
+<style lang="less" >
+@color-gray: rgba(0, 0, 0, 0.25);
 .wepy-com-calendar {
   font-size: 30rpx;
+  .header {
+    display: flex;
+    text-align: center;
+    .pre,
+    .next,
+    .picker {
+      width: 33%;
+    }
+  }
+  .fullcalendar {
+    margin-top: 20rpx;
+    .weeks,
+    .body {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .weeks text,
+    .body .body-item {
+      width: 14.2%;
+      text-align: center;
+    }
+    .body {
+      margin-top: 15rpx;
+      .pre,
+      .next {
+        color: @color-gray;
+      }
+      .body-item {
+        .info {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          text {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+          }
+        }
+        &.active {
+          .info {
+            text {
+              border-radius: 50%;
+              color: #fff;
+            }
+          }
+        }
+        &.select {
+          .icon-checked {
+            position: absolute;
+            right: 14rpx;
+            bottom: -2rpx;
+            width: 50%;
+          }
+        }
+      }
+    }
+  }
+  &.theme-blue {
+    @color-sub: #000;
+    @color-base: #666;
+    @color-iconText: #69c0ff;
+    .header {
+      color: @color-sub;
+    }
+    .fullcalendar {
+      .weeks text {
+        color: @color-sub;
+      }
+      .body {
+        .curr {
+          color: @color-base;
+        }
+        .body-item {
+          &.active {
+            .active-icon {
+              background: @color-iconText;
+            }
+          }
+        }
+      }
+    }
+  }
+  &.theme-default,
+  &.theme-black {
+    @color-sub: #000;
+    @color-base: #333;
+    @color-iconText: #666;
+    .header {
+      color: @color-sub;
+    }
+    .fullcalendar {
+      .weeks text {
+        color: @color-sub;
+      }
+      .body {
+        .curr {
+          color: @color-base;
+        }
+        .body-item {
+          &.active {
+            .active-icon {
+              background: @color-iconText;
+            }
+          }
+        }
+      }
+    }
+  }
+  &.theme-green {
+    @color-sub: #f759ab;
+    @color-base: #42b983;
+    @color-iconText: #f759ab;
+    .header {
+      color: @color-sub;
+    }
+    .fullcalendar {
+      .weeks text {
+        color: @color-sub;
+      }
+      .body {
+        .curr {
+          color: @color-base;
+        }
+        .body-item {
+          &.active {
+            .active-icon {
+              background: @color-iconText;
+            }
+          }
+        }
+      }
+    }
+  }
+  &.theme-pink {
+    @color-sub: #42b983;
+    @color-base: #f759ab;
+    @color-iconText: #42b983;
+    .header {
+      color: @color-sub;
+    }
+    .fullcalendar {
+      .weeks text {
+        color: @color-sub;
+      }
+      .body {
+        .curr {
+          color: @color-base;
+        }
+        .body-item {
+          &.active {
+            .active-icon {
+              background: @color-iconText;
+            }
+          }
+        }
+      }
+    }
+  }
+  &.theme-orange {
+    @color-sub: #ff9c6e;
+    @color-base: #36cfc9;
+    @color-iconText: #ffbb96;
+    .header {
+      color: @color-sub;
+    }
+    .fullcalendar {
+      .weeks text {
+        color: @color-sub;
+      }
+      .body {
+        .curr {
+          color: @color-base;
+        }
+        .body-item {
+          &.active {
+            .active-icon {
+              background: @color-iconText;
+            }
+          }
+        }
+      }
+    }
+  }
 }
-.wepy-com-calendar .header {
-  display: flex;
-  text-align: center;
-}
-.wepy-com-calendar .header .pre,
-.wepy-com-calendar .header .next,
-.wepy-com-calendar .header .picker {
-  width: 33%;
-}
-.wepy-com-calendar .fullcalendar {
-  margin-top: 20rpx;
-}
-.wepy-com-calendar .fullcalendar .weeks,
-.wepy-com-calendar .fullcalendar .body {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-.wepy-com-calendar .fullcalendar .weeks text,
-.wepy-com-calendar .fullcalendar .body .pre,
-.wepy-com-calendar .fullcalendar .body .next,
-.wepy-com-calendar .fullcalendar .body .curr {
-  width: 14.2%;
-  text-align: center;
-}
-.wepy-com-calendar .fullcalendar .body {
-  margin-top: 15rpx;
-}
-.wepy-com-calendar .fullcalendar .body .pre,
-.wepy-com-calendar .fullcalendar .body .next {
-  color: rgba(0, 0, 0, 0.25);
-}
-.wepy-com-calendar .fullcalendar .body .curr .info,
-.wepy-com-calendar .fullcalendar .body .pre .info,
-.wepy-com-calendar .fullcalendar .body .next .info {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-.wepy-com-calendar .fullcalendar .body .curr .info text,
-.wepy-com-calendar .fullcalendar .body .pre .info text,
-.wepy-com-calendar .fullcalendar .body .next .info text {
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
-}
-.wepy-com-calendar .fullcalendar .body .curr.active .info text,
-.wepy-com-calendar .fullcalendar .body .pre.active .info text,
-.wepy-com-calendar .fullcalendar .body .next.active .info text {
-  border-radius: 50%;
-  color: #fff;
-}
-.wepy-com-calendar .fullcalendar .body .curr.select .icon-checked,
-.wepy-com-calendar .fullcalendar .body .pre.select .icon-checked,
-.wepy-com-calendar .fullcalendar .body .next.select .icon-checked {
-  position: absolute;
-  right: 14rpx;
-  bottom: -2rpx;
-  width: 50%;
-}
-.wepy-com-calendar.theme-blue .header {
-  color: #000;
-}
-.wepy-com-calendar.theme-blue .fullcalendar .weeks text {
-  color: #000;
-}
-.wepy-com-calendar.theme-blue .fullcalendar .body .curr {
-  color: #666;
-}
-.wepy-com-calendar.theme-blue .fullcalendar .body .body-item.active .active-icon {
-  background: #69c0ff;
-}
-.wepy-com-calendar.theme-default .header,
-.wepy-com-calendar.theme-black .header {
-  color: #000;
-}
-.wepy-com-calendar.theme-default .fullcalendar .weeks text,
-.wepy-com-calendar.theme-black .fullcalendar .weeks text {
-  color: #000;
-}
-.wepy-com-calendar.theme-default .fullcalendar .body .curr,
-.wepy-com-calendar.theme-black .fullcalendar .body .curr {
-  color: #333;
-}
-.wepy-com-calendar.theme-default .fullcalendar .body .body-item.active .active-icon,
-.wepy-com-calendar.theme-black .fullcalendar .body .body-item.active .active-icon {
-  background: #666;
-}
-.wepy-com-calendar.theme-green .header {
-  color: #f759ab;
-}
-.wepy-com-calendar.theme-green .fullcalendar .weeks text {
-  color: #f759ab;
-}
-.wepy-com-calendar.theme-green .fullcalendar .body .curr {
-  color: #42b983;
-}
-.wepy-com-calendar.theme-green .fullcalendar .body .body-item.active .active-icon {
-  background: #f759ab;
-}
-.wepy-com-calendar.theme-pink .header {
-  color: #42b983;
-}
-.wepy-com-calendar.theme-pink .fullcalendar .weeks text {
-  color: #42b983;
-}
-.wepy-com-calendar.theme-pink .fullcalendar .body .curr {
-  color: #f759ab;
-}
-.wepy-com-calendar.theme-pink .fullcalendar .body .body-item.active .active-icon {
-  background: #42b983;
-}
-.wepy-com-calendar.theme-orange .header {
-  color: #ff9c6e;
-}
-.wepy-com-calendar.theme-orange .fullcalendar .weeks text {
-  color: #ff9c6e;
-}
-.wepy-com-calendar.theme-orange .fullcalendar .body .curr {
-  color: #36cfc9;
-}
-.wepy-com-calendar.theme-orange .fullcalendar .body .body-item.active .active-icon {
-  background: #ffbb96;
-}
-
 </style>
