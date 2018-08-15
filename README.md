@@ -45,11 +45,12 @@ class MyCompent extens wepy.component {
 
 | 主题名称 | 展示 |
 |:----------|:-------------|
-| default|black | ![](assets/example-black.png) |
+| default | ![](assets/example-black.png) |
 | orange | ![](assets/example-orange.png) |
 | blue | ![](assets/example-blue.png) |
 | pink | ![](assets/example-pink.png) |
 | green | ![](assets/example-green.png) |
+| black | ![](assets/example-black.png) |
 
 ## API
 
