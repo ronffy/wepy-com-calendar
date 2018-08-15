@@ -101,28 +101,32 @@ const dateUtils = {
 
 export default class WepyCalendar extends wepy.component {
   props = {
-    activeDate: {
+    // 高亮的日期，类型 YYYY-MM-DD
+    date: {
       type: String,
       default: dateUtils.formatDate(new Date())
     },
+    // 打卡的日期
     checks: {
       type: Array,
       default: []
     },
+    // 主题名称，可选值有 `default`, `green`, `pink`, `orange`, `black`, `blue`
     theme: {
       type: String,
-      default: 'orange' // 目前支持的主题有 default, green, pink, orange, black, blue，如需自定义，请通过themeStyle属性控制
+      default: 'orange',
     },
-    // 比theme优先级高，用于自定义主题样式
+    // 主题类名，用于自定义主题样式，优先级比`theme`高，传入此参数后，`theme`参数失效
     themeClassName: {
       type: String,
       default: ''
     },
+    // 语言，支持中(zh_CN)、英(en_GB)两种
     language: {
       type: String,
-      default: 'zh_CN' // 可选zh_CN, en_GB
+      default: 'zh_CN'
     },
-    // check状态时icon
+    // `check`状态时`image`的`src`地址，如果不传此参数，则使用`theme`内置的图片作为icon
     icon: {
       type: String,
       default: ''
@@ -144,7 +148,7 @@ export default class WepyCalendar extends wepy.component {
   onLoad() {
     this.setWidth();
     this.setLanguage();
-    const [year, month] = this.activeDate.split('-');
+    const [year, month] = this.date.split('-');
     this.resetPanelDays(year, month);
     this.$apply();
   }
@@ -161,9 +165,17 @@ export default class WepyCalendar extends wepy.component {
   }
 
   setLanguage() {
-    if (this.language !== 'zh_CN') {
-      this.weeks = dateUtils.getWeeks(this.language);
+    if (this.language === 'zh_CN') {
+      return;
     }
+    this.weeks = dateUtils.getWeeks(this.language);
+  }
+
+  setIcon() {
+    if (this.icon) {
+      return;
+    }
+    this.icon = `http://oxk008h6r.bkt.clouddn.com/check-${theme === 'default' ? 'black' : theme}.png`;
   }
 
   methods = {
@@ -176,7 +188,7 @@ export default class WepyCalendar extends wepy.component {
      * 修改日历月份
      * @param {number} modify 用于对month进行微调
      */
-    changeCurrMonth(month, modify = 0) {
+    changeCurrMonth(month, modify) {
       let monthNum = dateUtils.rmDatePrefix(month);
       let resaultMonth = monthNum;
       if (modify !== 0) {
@@ -196,6 +208,8 @@ export default class WepyCalendar extends wepy.component {
         resaultYear,
         `${dateUtils.addDatePrefix(resaultMonth)}`
       );
+      this.$emit(modify === 1 ? 'calendarAfterTapNextMonth' : 'calendarAfterTapPreMonth');
+      this.$emit(modify === 1 ? 'calendarAfterTapNextMonth' : 'calendarAfterTapPreMonth');
     },
     /**
      * 改变日期选择器value后的回调，event.detail = {value: value}
@@ -208,12 +222,13 @@ export default class WepyCalendar extends wepy.component {
       }
       const [year, month] = value.split('-');
       this.resetPanelDays(year, month);
+      this.$emit('calendarAfterChangePicker', `${year}-${month}`);
     }
   };
 
   // 根据索引值，设置当前日期面板的active项
   setCurrPanelActiveDay(fullDate) {
-    if (this.activeDate === fullDate) {
+    if (this.date === fullDate) {
       return;
     }
     let doed = 0; // 性能优化处理
@@ -239,7 +254,7 @@ export default class WepyCalendar extends wepy.component {
       }
     }
 
-    this.activeDate = fullDate;
+    this.date = fullDate;
     this.panelDaysList = newpanelDaysList;
   }
 
@@ -288,7 +303,7 @@ export default class WepyCalendar extends wepy.component {
   }
 
   /**
-   * 根据传进来的activeDate，计算年、月、当前月面板内的所有日（包含上月和下月的连接日）
+   * 根据传进来的date，计算年、月、当前月面板内的所有日（包含上月和下月的连接日）
    * @param {string} year YYYY
    * @param {string} month MM
    */
@@ -322,7 +337,6 @@ export default class WepyCalendar extends wepy.component {
     this.currYear = year;
     this.currMonth = month;
     this.panelDaysList = panelDaysList;
-    this.$emit('calendarAfterRender');
   }
 
   setDayItem(year, month, day, type = 'curr') {
@@ -338,7 +352,7 @@ export default class WepyCalendar extends wepy.component {
     return dayItem;
   }
   setActiveItemProp(dayItem) {
-    if (dayItem.fullDate === this.activeDate) {
+    if (dayItem.fullDate === this.date) {
       dayItem.active = true;
     }
   }
@@ -370,7 +384,7 @@ export default class WepyCalendar extends wepy.component {
             <view class="body-item {{item.type}} {{item.active ? 'active' : ''}} {{item.checked ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
                 <text class="active-icon" @style="activeStyle">{{item.day}}</text>
-                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || 'http://oxk008h6r.bkt.clouddn.com/check-' + (theme === 'default' ? 'black' : theme) + '.png'}}" />
+                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon}}" />
               </view>
             </view>
           </repeat>
