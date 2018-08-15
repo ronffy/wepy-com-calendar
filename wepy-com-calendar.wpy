@@ -209,7 +209,6 @@ export default class WepyCalendar extends wepy.component {
         `${dateUtils.addDatePrefix(resaultMonth)}`
       );
       this.$emit(modify === 1 ? 'calendarAfterTapNextMonth' : 'calendarAfterTapPreMonth');
-      this.$emit(modify === 1 ? 'calendarAfterTapNextMonth' : 'calendarAfterTapPreMonth');
     },
     /**
      * 改变日期选择器value后的回调，event.detail = {value: value}
