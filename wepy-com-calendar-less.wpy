@@ -196,6 +196,11 @@ export default class WepyCalendar extends wepy.component {
         resaultYear,
         `${dateUtils.addDatePrefix(resaultMonth)}`
       );
+      if (modify > 0) {
+        this.$emit('calendarAfterTapNextMonth');
+      } else {
+        this.$emit('calendarAfterTapPreMonth');
+      }
     },
     /**
      * 改变日期选择器value后的回调，event.detail = {value: value}
@@ -208,6 +213,7 @@ export default class WepyCalendar extends wepy.component {
       }
       const [year, month] = value.split('-');
       this.resetPanelDays(year, month);
+      this.$emit('calendarAfterChangePicker');
     }
   };
 
