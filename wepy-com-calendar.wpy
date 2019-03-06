@@ -141,6 +141,13 @@ export default class WepyCalendar extends wepy.component {
     panelDaysList: []
   };
 
+  watch = {
+    checks(newValue, oldValue) {
+      this.resetPanelDays(this.currYear, this.currMonth, true);
+      this.$apply();
+    }
+  }
+
   onLoad() {
     this.setWidth();
     this.setLanguage();
@@ -297,9 +304,10 @@ export default class WepyCalendar extends wepy.component {
    * 根据传进来的activeDate，计算年、月、当前月面板内的所有日（包含上月和下月的连接日）
    * @param {string} year YYYY
    * @param {string} month MM
+   * @param {boolean} force 是否强制刷新日历
    */
-  resetPanelDays(year, month, day) {
-    if (this.currYear === year && this.currMonth === month) {
+  resetPanelDays(year, month, force = false) {
+    if (!force && this.currYear === year && this.currMonth === month) {
       return;
     }
     const monthNum = dateUtils.rmDatePrefix(month);
