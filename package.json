@@ -1,6 +1,6 @@
 {
   "name": "wepy-com-calendar",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "一个基于wepy的日历组件，内置多套皮肤，可启用打卡功能",
   "main": "wepy-com-calendar.wpy",
   "cssnext:main": "wepy-com-calendar-less.wpy",
