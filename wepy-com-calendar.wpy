@@ -138,7 +138,15 @@ export default class WepyCalendar extends wepy.component {
     currYear: '',
     currMonth: '',
     // 此数组长度为35或42
-    panelDaysList: []
+    panelDaysList: [],
+    icons: {
+      default: 'http://i2.bvimg.com/679506/f84500a422e33aaf.png',
+      black: 'http://i2.bvimg.com/679506/f84500a422e33aaf.png',
+      blue: 'http://i2.bvimg.com/679506/ea61d6ce6a3b883e.png',
+      green: 'http://i2.bvimg.com/679506/f758a4b4473ba8d8.png',
+      orange: 'http://i2.bvimg.com/679506/95d664045b4dcb1e.png',
+      pink: 'http://i2.bvimg.com/679506/ceb7a353787929b9.png'
+    }
   };
 
   watch = {
@@ -384,7 +392,7 @@ export default class WepyCalendar extends wepy.component {
             <view class="body-item {{item.type}} {{item.active ? 'active' : ''}} {{item.checked ? 'select' : ''}}" data-info="{{item}}" data-index="{{index}}" @tap="tapDayItem">
               <view class="info">
                 <text class="active-icon" @style="activeStyle">{{item.day}}</text>
-                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || 'http://oxk008h6r.bkt.clouddn.com/check-' + (theme === 'default' ? 'black' : theme) + '.png'}}" />
+                <image wx:if="{{item.checked}}" class="icon-checked" mode="widthFix" src="{{icon || icons[theme]}}" />
               </view>
             </view>
           </repeat>
